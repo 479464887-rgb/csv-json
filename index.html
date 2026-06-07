@@ -1,2 +1,183 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Csv Json — DevKit Tools</title><meta name="description" content="在线 CSV/JSON 互转工具 - 支持自定义分隔符，一键Convert"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0d1117;color:#c9d1d9;min-height:100vh;display:flex;flex-direction:column}header{background:#161b22;border-bottom:1px solid #30363d;padding:16px 24px;display:flex;justify-content:space-between;align-items:center}.logo{font-size:18px;font-weight:700;color:#58a6ff}.logo span{color:#f0c040}header .badge{font-size:10px;background:#daa520;color:#fff;padding:2px 8px;border-radius:10px;margin-left:8px}main{max-width:700px;margin:0 auto;padding:32px 24px;flex:1}.tool-wrapper{padding:20px 0}footer{padding:16px 24px;border-top:1px solid #21262d;text-align:center;font-size:12px;color:#484f58}footer a{color:#58a6ff;text-decoration:none;margin:0 8px}.btn-primary:hover{background:#2ea043!important}.btn:hover{background:#30363d!important}input:focus,textarea:focus,select:focus{outline:none;border-color:#58a6ff!important}.btn{font-family:inherit}</style></head><body><header><div class="logo">🛠 <span>Dev</span>Kit<span class="badge">BETA</span></div><div style="font-size:11px;color:#8b949e">🔒 Processed locally · 数据不Upload</div></header><main><h1 style="font-size:24px;margin-bottom:4px">CSV ↔ JSON Converter</h1><p style="color:#8b949e;font-size:14px;margin-bottom:8px">在线 CSV/JSON 互转工具 - 支持自定义分隔符，一键Convert</p><div class="tool-wrapper"><div style="display:flex;gap:4px;margin-bottom:12px"><button class="tab-btn active" onclick="switchTab('csv2json')" id="tab-csv2json" style="flex:1;padding:10px;border:1px solid #58a6ff;border-radius:6px 6px 0 0;background:#1a2230;color:#58a6ff;cursor:pointer;font-size:13px;font-weight:600">📊 CSV → JSON</button><button class="tab-btn" onclick="switchTab('json2csv')" id="tab-json2csv" style="flex:1;padding:10px;border:1px solid #30363d;border-radius:6px 6px 0 0;background:#161b22;color:#8b949e;cursor:pointer;font-size:13px;font-weight:600">📋 JSON → CSV</button></div><textarea id="cj-input" placeholder="name,age,city\nAlice,30,NYC\nBob,25,LA" rows="6" style="width:100%;padding:16px;font-size:13px;border:1px solid #30363d;border-radius:0 0 8px 8px;background:#0d1117;color:#c9d1d9;resize:vertical;outline:none;font-family:mono;line-height:1.6;min-height:200px"></textarea><div style="display:flex;gap:8px;margin:12px 0;align-items:center;flex-wrap:wrap"><button class="btn btn-primary" style="padding:10px 24px;background:#238636;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:14px;font-weight:600" onclick="convert()">🔄 Convert</button><button class="btn" style="padding:10px 20px;background:#21262d;color:#c9d1d9;border:1px solid #30363d;border-radius:8px;cursor:pointer;font-size:13px" onclick="copyOut()">📋 Copy</button><span id="cj-opt" style="font-size:12px"><label style="margin-left:12px">分隔符:</label><select id="cj-delim" style="padding:6px;border:1px solid #30363d;border-radius:4px;background:#0d1117;color:#c9d1d9;font-size:12px"><option value=",">, 逗号</option><option value=";">; 分号</option><option value="\t">Tab</option><option value="|">| 竖线</option></select></span></div><textarea id="cj-output" placeholder="Convert结果..." readonly rows="8" style="width:100%;padding:16px;font-size:13px;border:1px solid #30363d;border-radius:8px;background:#161b22;color:#c9d1d9;resize:vertical;outline:none;font-family:mono;line-height:1.6;min-height:200px"></textarea></div></main><footer><a href="https://github.com/479464887-rgb/csv-json">GitHub</a><span>·</span><span>© 2026 DevKit</span></footer><script>let mode='csv2json';function switchTab(m){mode=m;document.querySelectorAll('.tab-btn').forEach(b=>{b.style.borderColor='#30363d';b.style.background='#161b22';b.style.color='#8b949e'});const t=document.getElementById('tab-'+m);t.style.borderColor='#58a6ff';t.style.background='#1a2230';t.style.color='#58a6ff';document.getElementById('cj-opt').style.display=m==='csv2json'?'inline':'none';document.getElementById('cj-input').placeholder=m==='csv2json'?'name,age,city\nAlice,30,NYC\nBob,25,LA':'[{"name":"Alice","age":30}]'}function convert(){const inp=document.getElementById('cj-input').value.trim();const out=document.getElementById('cj-output');if(!inp)return;try{if(mode==='csv2json'){const delim=document.getElementById('cj-delim').value==='\t'?'\t':document.getElementById('cj-delim').value;const lines=inp.split('\n').filter(l=>l.trim());if(lines.length<2)return out.value='需要至少2行（表头+数据）';const headers=lines[0].split(delim).map(h=>h.trim().replace(/^"|"$/g,''));const rows=lines.slice(1).map(line=>{const vals=line.split(delim).map(v=>v.trim().replace(/^"|"$/g,''));const obj={};headers.forEach((h,i)=>{const n=parseFloat(vals[i]);obj[h]=isNaN(n)?vals[i]:n});return obj});out.value=JSON.stringify(rows,null,2)}else{const data=JSON.parse(inp);const arr=Array.isArray(data)?data:[data];if(!arr.length)return out.value='空数组';const keys=Object.keys(arr[0]);const csv=[keys.join(',')];arr.forEach(row=>{csv.push(keys.map(k=>{const v=row[k];if(v===null||v===undefined)return'';const s=String(v);return s.includes(',')||s.includes('"')?'"'+s.replace(/"/g,'""')+'"':s}).join(','))});out.value=csv.join('\n')}}catch(e){out.value='❌ '+e.message}}function copyOut(){navigator.clipboard.writeText(document.getElementById('cj-output').value)}
-</script></body></html>
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Csv Json — DevKit Tools</title>
+  <meta name="description" content="在线 CSV/JSON 互转工具 - 支持自定义分隔符，一键Convert">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #0d1117;
+      color: #c9d1d9;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column
+    }
+
+    header {
+      background: #161b22;
+      border-bottom: 1px solid #30363d;
+      padding: 16px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center
+    }
+
+    .logo {
+      font-size: 18px;
+      font-weight: 700;
+      color: #58a6ff
+    }
+
+    .logo span {
+      color: #f0c040
+    }
+
+    header .badge {
+      font-size: 10px;
+      background: #daa520;
+      color: #fff;
+      padding: 2px 8px;
+      border-radius: 10px;
+      margin-left: 8px
+    }
+
+    main {
+      max-width: 700px;
+      margin: 0 auto;
+      padding: 32px 24px;
+      flex: 1
+    }
+
+    .tool-wrapper {
+      padding: 20px 0
+    }
+
+    footer {
+      padding: 16px 24px;
+      border-top: 1px solid #21262d;
+      text-align: center;
+      font-size: 12px;
+      color: #484f58
+    }
+
+    footer a {
+      color: #58a6ff;
+      text-decoration: none;
+      margin: 0 8px
+    }
+
+    .btn-primary:hover {
+      background: #2ea043 !important
+    }
+
+    .btn:hover {
+      background: #30363d !important
+    }
+
+    input:focus,
+    textarea:focus,
+    select:focus {
+      outline: none;
+      border-color: #58a6ff !important
+    }
+
+    .btn {
+      font-family: inherit
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <div class="logo">🛠 <span>Dev</span>Kit<span class="badge">BETA</span></div>
+    <div style="font-size:11px;color:#8b949e">🔒 Processed locally · 数据不Upload</div>
+  </header>
+  <main>
+    <h1 style="font-size:24px;margin-bottom:4px">CSV ↔ JSON Converter</h1>
+    <p style="color:#8b949e;font-size:14px;margin-bottom:8px">在线 CSV/JSON 互转工具 - 支持自定义分隔符，一键Convert</p>
+    <div class="tool-wrapper">
+      <div style="display:flex;gap:4px;margin-bottom:12px"><button class="tab-btn active" onclick="switchTab('csv2json')" id="tab-csv2json" style="flex:1;padding:10px;border:1px solid #58a6ff;border-radius:6px 6px 0 0;background:#1a2230;color:#58a6ff;cursor:pointer;font-size:13px;font-weight:600">📊 CSV → JSON</button><button class="tab-btn" onclick="switchTab('json2csv')" id="tab-json2csv" style="flex:1;padding:10px;border:1px solid #30363d;border-radius:6px 6px 0 0;background:#161b22;color:#8b949e;cursor:pointer;font-size:13px;font-weight:600">📋 JSON → CSV</button></div><textarea id="cj-input" placeholder="name,age,city\nAlice,30,NYC\nBob,25,LA" rows="6" style="width:100%;padding:16px;font-size:13px;border:1px solid #30363d;border-radius:0 0 8px 8px;background:#0d1117;color:#c9d1d9;resize:vertical;outline:none;font-family:mono;line-height:1.6;min-height:200px"></textarea>
+      <div style="display:flex;gap:8px;margin:12px 0;align-items:center;flex-wrap:wrap"><button class="btn btn-primary" style="padding:10px 24px;background:#238636;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:14px;font-weight:600" onclick="convert()">🔄 Convert</button><button class="btn" style="padding:10px 20px;background:#21262d;color:#c9d1d9;border:1px solid #30363d;border-radius:8px;cursor:pointer;font-size:13px" onclick="copyOut()">📋 Copy</button><span id="cj-opt" style="font-size:12px"><label style="margin-left:12px">分隔符:</label><select id="cj-delim" style="padding:6px;border:1px solid #30363d;border-radius:4px;background:#0d1117;color:#c9d1d9;font-size:12px">
+            <option value=",">, 逗号</option>
+            <option value=";">; 分号</option>
+            <option value="\t">Tab</option>
+            <option value="|">| 竖线</option>
+          </select></span></div><textarea id="cj-output" placeholder="Convert结果..." readonly rows="8" style="width:100%;padding:16px;font-size:13px;border:1px solid #30363d;border-radius:8px;background:#161b22;color:#c9d1d9;resize:vertical;outline:none;font-family:mono;line-height:1.6;min-height:200px"></textarea>
+    </div>
+  </main>
+  <footer><a href="https://github.com/479464887-rgb/csv-json">GitHub</a><span>·</span><span>© 2026 DevKit</span></footer>
+  <script>
+    let mode = 'csv2json';
+
+    function switchTab(m) {
+      mode = m;
+      document.querySelectorAll('.tab-btn').forEach(b => {
+        b.style.borderColor = '#30363d';
+        b.style.background = '#161b22';
+        b.style.color = '#8b949e'
+      });
+      const t = document.getElementById('tab-' + m);
+      t.style.borderColor = '#58a6ff';
+      t.style.background = '#1a2230';
+      t.style.color = '#58a6ff';
+      document.getElementById('cj-opt').style.display = m === 'csv2json' ? 'inline' : 'none';
+      document.getElementById('cj-input').placeholder = m === 'csv2json' ? 'name,age,city\nAlice,30,NYC\nBob,25,LA' : '[{"name":"Alice","age":30}]'
+    }
+
+    function convert() {
+      const inp = document.getElementById('cj-input').value.trim();
+      const out = document.getElementById('cj-output');
+      if (!inp) return;
+      try {
+        if (mode === 'csv2json') {
+          const delim = document.getElementById('cj-delim').value === '\t' ? '\t' : document.getElementById('cj-delim').value;
+          const lines = inp.split('\n').filter(l => l.trim());
+          if (lines.length < 2) return out.value = '需要至少2行（表头+数据）';
+          const headers = lines[0].split(delim).map(h => h.trim().replace(/^"|"$/g, ''));
+          const rows = lines.slice(1).map(line => {
+            const vals = line.split(delim).map(v => v.trim().replace(/^"|"$/g, ''));
+            const obj = {};
+            headers.forEach((h, i) => {
+              const n = parseFloat(vals[i]);
+              obj[h] = isNaN(n) ? vals[i] : n
+            });
+            return obj
+          });
+          out.value = JSON.stringify(rows, null, 2)
+        } else {
+          const data = JSON.parse(inp);
+          const arr = Array.isArray(data) ? data : [data];
+          if (!arr.length) return out.value = '空数组';
+          const keys = Object.keys(arr[0]);
+          const csv = [keys.join(',')];
+          arr.forEach(row => {
+            csv.push(keys.map(k => {
+              const v = row[k];
+              if (v === null || v === undefined) return '';
+              const s = String(v);
+              return s.includes(',') || s.includes('"') ? '"' + s.replace(/"/g, '""') + '"' : s
+            }).join(','))
+          });
+          out.value = csv.join('\n')
+        }
+      } catch (e) {
+        out.value = '❌ ' + e.message
+      }
+    }
+
+    function copyOut() {
+      navigator.clipboard.writeText(document.getElementById('cj-output').value)
+    }
+  </script>
+</body>
+
+</html>
